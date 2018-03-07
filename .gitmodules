@@ -1,3 +1,6 @@
 [submodule "ChibiOS"]
 	path = ChibiOS
 	url = https://github.com/ngblume/ChibiOS.git
+[submodule "lib/libuavcan"]
+	path = lib/libuavcan
+	url = https://github.com/ngblume/libuavcan.git
