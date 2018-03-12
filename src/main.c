@@ -16,6 +16,7 @@
 
 #include "ch.h"
 #include "hal.h"
+#include "uavcan/node.h"
 
 /*
  * Application entry point.
@@ -31,6 +32,13 @@ int main(void) {
    */
   halInit();
   chSysInit();
+
+  /*
+  * Start UAVCAN node
+  */
+  unsigned int node_id = 100;
+  const char *node_name = "Simple UAVCAN-Node";
+  uavcan_start(node_id, node_name);
 
   /*
    * Normal main() thread activity, in this demo it does nothing except

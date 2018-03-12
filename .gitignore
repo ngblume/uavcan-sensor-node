@@ -31,6 +31,7 @@
 # ChibiOS build files
 .dep/*
 build/
+dsdlc_generated/
 
 # Packager build files
 app_src.mk

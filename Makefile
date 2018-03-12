@@ -15,7 +15,7 @@ endif
 
 # C++ specific options here (added to USE_OPT).
 ifeq ($(USE_CPPOPT),)
-  USE_CPPOPT = -fno-rtti
+  USE_CPPOPT = -fno-rtti 
 endif
 
 # Enable this if you want the linker to remove unused code and data
@@ -84,6 +84,16 @@ endif
 
 # Define project name here
 PROJECT = ch
+#PROJECT = com.tudsat.simplenode
+#HW_VERSION_MAJOR = 1
+#FW_VERSION_MAJOR = 1
+#FW_VERSION_MINOR = 1
+#
+#UDEFS = -DFW_VERSION_MAJOR=$(FW_VERSION_MAJOR)           \
+#        -DFW_VERSION_MINOR=$(FW_VERSION_MINOR)           \
+#        -DHW_VERSION_MAJOR=$(HW_VERSION_MAJOR)           \
+#        -DPRODUCT_ID_STRING=\"$(PROJECT)\"               \
+#        -DPRODUCT_NAME_STRING=\"TUDSaT\ Node\"
 
 # Imported source files and paths
 CHIBIOS = ChibiOS
@@ -98,9 +108,6 @@ include $(CHIBIOS)/os/hal/osal/rt/osal.mk
 include $(CHIBIOS)/os/rt/rt.mk
 include $(CHIBIOS)/os/common/ports/ARMCMx/compilers/GCC/mk/port_v7m.mk
 # Other files (optional).
-include $(CHIBIOS)/test/lib/test.mk
-include $(CHIBIOS)/test/rt/rt_test.mk
-include $(CHIBIOS)/test/oslib/oslib_test.mk
 include $(CHIBIOS)/os/hal/lib/streams/streams.mk
 
 # Define linker script file here
@@ -115,12 +122,11 @@ CSRC = $(STARTUPSRC) \
        $(HALSRC) \
        $(PLATFORMSRC) \
        $(BOARDSRC) \
-       $(TESTSRC) \
-       src/main.c
+       src/main.c     
 
 # C++ sources that can be compiled in ARM or THUMB mode depending on the global
 # setting.
-CPPSRC =
+CPPSRC = src/uavcan/node.cpp
 
 # C sources to be compiled in ARM mode regardless of the global setting.
 # NOTE: Mixing ARM and THUMB mode enables the -mthumb-interwork compiler
@@ -148,7 +154,45 @@ ASMXSRC = $(STARTUPASM) $(PORTASM) $(OSALASM)
 
 INCDIR = $(CHIBIOS)/os/license \
          $(STARTUPINC) $(KERNINC) $(PORTINC) $(OSALINC) \
-         $(HALINC) $(PLATFORMINC) $(BOARDINC) $(TESTINC)
+         $(HALINC) $(PLATFORMINC) $(BOARDINC) \
+         $(CHIBIOS)/os/various src
+
+# Include C++ wrappers 
+include $(CHIBIOS)/os/various/cpp_wrappers/chcpp.mk
+CPPSRC += $(CHIBIOS)/os/various/cpp_wrappers/ch.cpp
+INCDIR += $(CHCPPINC)
+
+#
+# UAVCAN library
+#
+
+# Create link to UAVCAN lib folder
+UAVCAN = lib/libuavcan
+
+UDEFS += -DUAVCAN_STM32_CHIBIOS=1 \
+		 -DUAVCAN_STM32_NUM_IFACES=1 \
+		 -DUAVCAN_STM32_TIMER_NUMBER=2 \
+		 -DUAVCAN_CPP_VERSION=UAVCAN_CPP11
+
+# Disabling toString shouldn't be required, since it is an embedded target, but to be sure...
+# -DUAVCAN_TOSTRING=0
+
+# Tiny deactivated since not required
+# -DUAVCAN_TINY=1
+
+# Include main makefile
+include $(UAVCAN)/libuavcan/include.mk
+CPPSRC += $(LIBUAVCAN_SRC)
+UINCDIR += $(LIBUAVCAN_INC)
+
+# Include makefile for STM32 driver version
+include $(UAVCAN)/libuavcan_drivers/stm32/driver/include.mk
+CPPSRC += $(LIBUAVCAN_STM32_SRC)
+UINCDIR += $(LIBUAVCAN_STM32_INC) 
+
+# Compiling and including DSDLC headers
+# $(info $(shell $(LIBUAVCAN_DSDLC) $(UAVCAN_DSDL_DIR)))
+UINCDIR += dsdlc_generated
 
 #
 # Project, sources and paths
@@ -198,13 +242,13 @@ CPPWARN = -Wall -Wextra -Wundef
 #
 
 # List all user C define here, like -D_DEBUG=1
-UDEFS =
+UDEFS +=
 
 # Define ASM defines here
 UADEFS =
 
 # List all user directories here
-UINCDIR =
+UINCDIR += 
 
 # List the user directory to look for the libraries here
 ULIBDIR =
